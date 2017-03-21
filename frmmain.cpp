@@ -4,6 +4,23 @@
 #include<QFileDialog>
 #include<QtCore>
 
+
+void frmMain::help()
+{
+    std::cout
+    << "--------------------------------------------------------------------------" << endl
+    << "This program shows how to use background subtraction methods provided by "  << endl
+    << " OpenCV. You can process both videos (-vid) and images (-img)."             << endl
+                                                                                    << endl
+    << "Usage:"                                                                     << endl
+    << "./bg_sub {-vid <video filename>|-img <image filename>}"                     << endl
+    << "for example: ./bg_sub -vid video.avi"                                       << endl
+    << "or: ./bg_sub -img /data/images/1.png"                                       << endl
+    << "--------------------------------------------------------------------------" << endl
+    << endl;
+}
+
+
 frmMain::frmMain(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::frmMain)
@@ -80,4 +97,10 @@ QImage frmMain::convertOpenCVMatToQtQImage(cv::Mat mat) {
         qDebug() << "in convertOpenCVMatToQtQImage, image was not 1 channel or 3 channel, should never get here";
     }
     return QImage();        // return a blank QImage if the above did not work
+}
+
+
+void frmMain::processImages(char* firstFrameFilename)
+{
+
 }
