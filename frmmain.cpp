@@ -26,6 +26,40 @@ frmMain::frmMain(QWidget *parent) :
     ui(new Ui::frmMain)
 {
     ui->setupUi(this);
+
+    //print help information
+    help();
+    //check for the input parameter correctness
+    /*if(argc != 3) {
+        cerr <<"Incorret input list" << endl;
+        cerr <<"exiting..." << endl;
+        return EXIT_FAILURE;
+    }*/
+    //create GUI windows
+    //namedWindow("Frame");
+    //namedWindow("FG Mask MOG 2");
+    //create Background Subtractor objects
+    pMOG2 = cv::createBackgroundSubtractorMOG2(); //MOG2 approach
+    /*if(strcmp(argv[1], "-vid") == 0) {
+        //input data coming from a video
+        processVideo(argv[2]);
+    }*/
+    /*else*/// if(strcmp(argv[1], "-img") == 0) {
+        //input data coming from a sequence of images
+        //processImages(argv[2]);
+
+   // }
+   /* else {
+        //error in reading input parameters
+        cerr <<"Please, check the input parameters." << endl;
+        cerr <<"Exiting..." << endl;
+        return EXIT_FAILURE;
+    } */
+
+
+    //destroy GUI windows
+    //destroyAllWindows();
+    //return EXIT_SUCCESS;
 }
 
 frmMain::~frmMain()
@@ -46,6 +80,10 @@ void frmMain::on_btnOpenFile_clicked()
     cv::Mat imgGrayscale;           // grayscale of input image
     cv::Mat imgBlurred;             // intermediate blured image
     cv::Mat imgCanny;               // Canny edge image
+
+    processImages((char)strFileName.toStdString());
+
+    return;
 
     imgOriginal = cv::imread(strFileName.toStdString());        // open image
 
@@ -102,5 +140,61 @@ QImage frmMain::convertOpenCVMatToQtQImage(cv::Mat mat) {
 
 void frmMain::processImages(char* firstFrameFilename)
 {
+    //read the first file of the sequence
+     frame = cv::imread(firstFrameFilename);
+     if(frame.empty()){
+         //error in opening the first image
+         std::cerr << "Unable to open first image frame: " << firstFrameFilename << endl;
+         exit(EXIT_FAILURE);
+     }
+     //current image filename
+     std::string fn(firstFrameFilename);
+     //read input data. ESC or 'q' for quitting
+     keyboard = 0;
+     while( keyboard != 'q' && keyboard != 27 ) {
+         //update the background model
+         pMOG2->apply(frame, fgMaskMOG2);
+         //get the frame number and write it on the current frame
+         size_t index = fn.find_last_of("/");
+         if(index == std::string::npos) {
+             index = fn.find_last_of("\\");
+         }
+         size_t index2 = fn.find_last_of(".");
+         std::string prefix = fn.substr(0,index+1);
+         std::string suffix = fn.substr(index2);
+         std::string frameNumberString = fn.substr(index+1, index2-index-1);
+         std::istringstream iss(frameNumberString);
+         int frameNumber = 0;
+         iss >> frameNumber;
+         rectangle(frame, cv::Point(10, 2), cv::Point(100,20),
+                   cv::Scalar(255,255,255), -1);
+         putText(frame, frameNumberString.c_str(), cv::Point(15, 15),
+                 cv::FONT_HERSHEY_SIMPLEX, 0.5 , cv::Scalar(0,0,0));
+         //show the current frame and the fg masks
+         //imshow("Frame", frame);
+         QImage qimgOriginal = convertOpenCVMatToQtQImage(frame);
+         ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgOriginal));
+
+         //imshow("FG Mask MOG 2", fgMaskMOG2);
+         QImage qimgFG = convertOpenCVMatToQtQImage(fgMaskMOG2);
+         ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgFG));
+
+         //get the input from the keyboard
+         keyboard = (char)cv::waitKey( 30 );
+         //search for the next image in the sequence
+         std::ostringstream oss;
+         oss << (frameNumber + 1);
+         std::string nextFrameNumberString = oss.str();
+         std::string nextFrameFilename = prefix + nextFrameNumberString + suffix;
+         //read the next frame
+         frame = cv::imread(nextFrameFilename);
+         if(frame.empty()){
+             //error in opening the next image in the sequence
+             std::cerr << "Unable to open image frame: " << nextFrameFilename << endl;
+             exit(EXIT_FAILURE);
+         }
+         //update the path of the current frame
+         fn.assign(nextFrameFilename);
+    }
 
 }
