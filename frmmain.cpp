@@ -81,8 +81,12 @@ void frmMain::on_btnOpenFile_clicked()
     cv::Mat imgBlurred;             // intermediate blured image
     cv::Mat imgCanny;               // Canny edge image
 
-    processImages((char)strFileName.toStdString());
+    std::string str = strFileName.toStdString();
+    char *cstr = &str[0u];
+    processImages(cstr);
 
+
+    cv::waitKey(0);
     return;
 
     imgOriginal = cv::imread(strFileName.toStdString());        // open image
