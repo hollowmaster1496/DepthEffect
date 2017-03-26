@@ -83,7 +83,8 @@ void frmMain::on_btnOpenFile_clicked()
 
     std::string str = strFileName.toStdString();
     char *cstr = &str[0u];
-    processImages(cstr);
+    //processImages(cstr);
+    processVideo(cstr);
 
 
     cv::waitKey(0);
@@ -201,4 +202,41 @@ void frmMain::processImages(char* firstFrameFilename)
          fn.assign(nextFrameFilename);
     }
 
+}
+
+void frmMain::processVideo(char* videoFilename) {
+    //create the capture object
+    cv::VideoCapture capture(videoFilename);
+    if(!capture.isOpened()){
+        //error in opening the video input
+        std::cerr << "Unable to open video file: " << videoFilename << endl;
+        exit(EXIT_FAILURE);
+    }
+    //read input data. ESC or 'q' for quitting
+    keyboard = 0;
+    while( keyboard != 'q' && keyboard != 27 ){
+        //read the current frame
+        if(!capture.read(frame)) {
+            std::cerr << "Unable to read next frame." << endl;
+            std::cerr << "Exiting..." << endl;
+            exit(EXIT_FAILURE);
+        }
+        //update the background model
+        pMOG2->apply(frame, fgMaskMOG2);
+        //get the frame number and write it on the current frame
+        std::stringstream ss;
+        rectangle(frame, cv::Point(10, 2), cv::Point(100,20),
+                  cv::Scalar(255,255,255), -1);
+        ss << capture.get(cv::CAP_PROP_POS_FRAMES);
+        std::string frameNumberString = ss.str();
+        putText(frame, frameNumberString.c_str(), cv::Point(15, 15),
+                cv::FONT_HERSHEY_SIMPLEX, 0.5 , cv::Scalar(0,0,0));
+        //show the current frame and the fg masks
+        imshow("Frame", frame);
+        imshow("FG Mask MOG 2", fgMaskMOG2);
+        //get the input from the keyboard
+        keyboard = (char)cv::waitKey( 30 );
+    }
+    //delete capture object
+    capture.release();
 }
