@@ -185,6 +185,7 @@ void frmMain::processImages(char* firstFrameFilename)
          ui->lblOriginal->setPixmap(QPixmap::fromImage(qimgFG));
 
          //get the input from the keyboard
+         cv::waitKey(0);
          keyboard = (char)cv::waitKey( 30 );
          //search for the next image in the sequence
          std::ostringstream oss;
@@ -206,7 +207,8 @@ void frmMain::processImages(char* firstFrameFilename)
 
 void frmMain::processVideo(char* videoFilename) {
     //create the capture object
-    cv::VideoCapture capture(videoFilename);
+    //cv::VideoCapture capture(videoFilename);
+    cv::VideoCapture capture(0);
     if(!capture.isOpened()){
         //error in opening the video input
         std::cerr << "Unable to open video file: " << videoFilename << endl;
